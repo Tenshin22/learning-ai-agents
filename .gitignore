@@ -1,1 +1,16 @@
+# Секреты и переменные окружения
 .env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Виртуальные окружения
+.venv/
+venv/
+
+# IDE
+.idea/
+.vscode/
