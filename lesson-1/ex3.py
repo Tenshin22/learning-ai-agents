@@ -1,5 +1,6 @@
 import json
 import os
+import time
 import urllib.error
 import urllib.request
 from pathlib import Path
@@ -32,7 +33,7 @@ os.environ[env_name] = env_value
 # если такой переменной окружения нет
 api_key: str | None = os.environ.get(env_name)
 
-def ask_neuraldeep(api_key: str | None, user_prompt: str):
+def ask_neuraldeep(api_key: str | None, user_prompt: str, temp: float):
     # 2. Настройка запроса к NeuralDeep
     # Ссылка должна вести на конкретный метод создания диалога
     url: str = "https://api.neuraldeep.ru/v1/chat/completions"
@@ -54,7 +55,7 @@ def ask_neuraldeep(api_key: str | None, user_prompt: str):
             {"role": "user", "content": user_prompt},
         ],
         "max_tokens": 2000,
-        "temperature": 1.0,
+        "temperature": temp,
     }
 
     # Кодируем JSON в байты (urllib требует bytes для POST-запросов) [1, 2]
@@ -85,12 +86,19 @@ def ask_neuraldeep(api_key: str | None, user_prompt: str):
     except Exception as e:
         print(f"Произошла ошибка: {e}")
 
-while True:
-    user_prompt = input("\n__Ваш запрос__\n")
-    print("\n__Ответ нейросети__\n")
-    print(ask_neuraldeep(api_key, user_prompt))
+i = 1
+while i <= 5:
+    #user_prompt = input("\n__Ваш запрос__\n")
+    # print("\n__Ответ нейросети__\n")
+    # print(ask_neuraldeep(api_key, user_prompt))
     
-    user_answer = input("Если хотите выйти напишите Выход\nЕсли нет Enter\nВвод: ").lower()
+    # user_answer = input("Если хотите выйти напишите Выход\nЕсли нет Enter\nВвод: ").lower()
     
-    if user_answer == "выход":
-        break
+    llm_response = ask_neuraldeep(api_key, user_prompt="Ответь коротко, продолжи фразу 'одна голова...'" , temp=1.0)
+    print(llm_response)
+    
+    with open("lesson-1/response2.txt", mode="a", encoding="utf-8") as f:
+        f.write(llm_response + f"---{i}---")
+    
+    i += 1
+    time.sleep(1)
