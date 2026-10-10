@@ -86,7 +86,9 @@ def ask_neuraldeep(api_key: str | None, prompt: str, temp: float):
     except Exception as e:
         print(f"Произошла ошибка: {e}")
 
-history_chat = ""
+with open("lesson-3/history_chat.txt", mode="r", encoding="utf-8") as f:
+    history_chat = f.read()
+
 while True:
     user_prompt = input("\n--Ваш запрос---\n")
     prompt = history_chat + user_prompt
