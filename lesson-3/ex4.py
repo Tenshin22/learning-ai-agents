@@ -1,5 +1,6 @@
 import json
 import os
+import time
 import urllib.error
 import urllib.request
 from pathlib import Path
@@ -32,7 +33,7 @@ os.environ[env_name] = env_value
 # если такой переменной окружения нет
 api_key: str | None = os.environ.get(env_name)
 
-def ask_neuraldeep(api_key: str | None, user_prompt: str, temp: float):
+def ask_neuraldeep(api_key: str | None, prompt: str, temp: float):
     # 2. Настройка запроса к NeuralDeep
     # Ссылка должна вести на конкретный метод создания диалога
     url: str = "https://api.neuraldeep.ru/v1/chat/completions"
@@ -50,8 +51,8 @@ def ask_neuraldeep(api_key: str | None, user_prompt: str, temp: float):
     data: dict[str, Any] = {
         "model": "qwen3.6-35b-a3b",
         "messages": [
-            {"role": "system", "content": "строгий учитель"},
-            {"role": "user", "content": user_prompt},
+            {"role": "system", "content": "ты помощник"},
+            {"role": "user", "content": prompt},
         ],
         "max_tokens": 2000,
         "temperature": temp,
@@ -85,11 +86,18 @@ def ask_neuraldeep(api_key: str | None, user_prompt: str, temp: float):
     except Exception as e:
         print(f"Произошла ошибка: {e}")
 
-temp = float(input("Задайте температуру: "))
+history_chat = ""
 while True:
-    user_prompt = input("\n__Ваш запрос__\n")
-    print("\n__Ответ нейросети__\n")
-    print(ask_neuraldeep(api_key, user_prompt, temp))
+    user_prompt = input("\n--Ваш запрос---\n")
+    prompt = history_chat + user_prompt
+    
+    llm_response = ask_neuraldeep(api_key, prompt, temp=1.0)
+    print(llm_response)
+    
+    history_chat = history_chat + user_prompt + llm_response
+    
+    with open("lesson-3/history_chat.txt", mode="a", encoding="utf-8") as f:
+        f.write(f"---Ответ нейросети---\n{history_chat}\n\n")
     
     user_answer = input("Если хотите выйти напишите Выход\nЕсли нет Enter\nВвод: ").lower()
     
