@@ -15,6 +15,7 @@ from typing import Any
 # Вычисляет путь к папке learning-ai-agents на основе расположения самого main.py
 # Path — тип «путь к файлу/папке» из модуля pathlib (удобнее работать, чем со строкой)
 BASE_DIR: Path = Path(__file__).resolve().parent.parent
+HISTORY_PATH = BASE_DIR / "lesson-3" / "history_chat.json"
 ENV_PATH: Path = BASE_DIR / ".env"
 
 with open(ENV_PATH, mode="r", encoding="utf-8") as file:
@@ -33,7 +34,7 @@ os.environ[env_name] = env_value
 # если такой переменной окружения нет
 api_key: str | None = os.environ.get(env_name)
 
-def ask_neuraldeep(api_key: str | None, prompt: str, temp: float):
+def ask_neuraldeep(api_key: str | None, messages: list[dict[str, str]], temp: float):
     # 2. Настройка запроса к NeuralDeep
     # Ссылка должна вести на конкретный метод создания диалога
     url: str = "https://api.neuraldeep.ru/v1/chat/completions"
@@ -50,10 +51,7 @@ def ask_neuraldeep(api_key: str | None, prompt: str, temp: float):
     # Any нужен, потому что значения разные (строка, список, число)
     data: dict[str, Any] = {
         "model": "qwen3.6-35b-a3b",
-        "messages": [
-            {"role": "system", "content": "ты помощник"},
-            {"role": "user", "content": prompt},
-        ],
+        "messages": messages,
         "max_tokens": 2000,
         "temperature": temp,
     }
@@ -78,28 +76,38 @@ def ask_neuraldeep(api_key: str | None, prompt: str, temp: float):
             result: dict[str, Any] = json.loads(res_body)
 
             # Выводим ответ модели
-            return "Ответ нейросети: " + result["choices"][0]["message"]["content"]
+            return result["choices"][0]["message"]["content"]
 
     except urllib.error.HTTPError as e:
         print(f"Ошибка HTTP: {e.code}")
         print(e.read().decode("utf-8"))
     except Exception as e:
-        print(f"Произошла ошибка: {e}")
+        return f"Произошла ошибка: {e}"
 
-with open("lesson-3/history_chat.txt", mode="r", encoding="utf-8") as f:
-    history_chat = f.read()
+temp = 1
 
+if HISTORY_PATH.exists():
+    try:
+        with open(HISTORY_PATH, mode="r", encoding="utf-8") as f:
+            messages = json.load(f)
+            
+    except json.JSONDecodeError:
+        print("история переписки повреждена или пуста")
+        
+        messages = [{"role": "system", "content": "ты помощник"}]
+
+    
 while True:
     user_prompt = input("\n--Ваш запрос---\n")
-    prompt = history_chat + user_prompt
+    messages.append({"role": "user", "content": user_prompt})
     
-    llm_response = ask_neuraldeep(api_key, prompt, temp=1.0)
+    llm_response = ask_neuraldeep(api_key, messages, temp)
     print(llm_response)
     
-    history_chat = history_chat + user_prompt + llm_response
+    messages.append({"role": "assistant", "content": llm_response})
     
-    with open("lesson-3/history_chat.txt", mode="a", encoding="utf-8") as f:
-        f.write(f"---Ответ нейросети---\n{history_chat}\n\n")
+    with open(HISTORY_PATH, mode="w", encoding="utf-8") as f:
+        json.dump(messages, f, ensure_ascii=False, indent=2)
     
     user_answer = input("Если хотите выйти напишите Выход\nЕсли нет Enter\nВвод: ").lower()
     
