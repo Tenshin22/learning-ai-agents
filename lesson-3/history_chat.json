@@ -1,1 +1,22 @@
-{}
+[
+  {
+    "role": "system",
+    "content": "ты помощник. Текущая дата:2026-10-25 19:15:48.772816"
+  },
+  {
+    "role": "user",
+    "content": "какая сейчас дата"
+  },
+  {
+    "role": "assistant",
+    "content": "Произошла ошибка: <urlopen error [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1081)>"
+  },
+  {
+    "role": "user",
+    "content": "какя сейчас дата"
+  },
+  {
+    "role": "assistant",
+    "content": "\n\nСейчас **25 октября 2026 года**."
+  }
+]

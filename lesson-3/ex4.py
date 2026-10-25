@@ -5,6 +5,7 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 from typing import Any
+from datetime import datetime
 
 # Аннотация `переменная: тип` — это подсказка для человека и редактора кода.
 # Python сам её игнорирует при запуске, но IDE сможет подсказывать методы
@@ -17,6 +18,7 @@ from typing import Any
 BASE_DIR: Path = Path(__file__).resolve().parent.parent
 HISTORY_PATH = BASE_DIR / "lesson-3" / "history_chat.json"
 ENV_PATH: Path = BASE_DIR / ".env"
+
 
 with open(ENV_PATH, mode="r", encoding="utf-8") as file:
     # str — обычная строка (текст)
@@ -33,6 +35,12 @@ os.environ[env_name] = env_value
 # str | None означает «либо строка, либо None» — get() вернёт None,
 # если такой переменной окружения нет
 api_key: str | None = os.environ.get(env_name)
+
+now: datetime = datetime.now()
+
+string_date: str = str(now)
+
+SYSTEM_PROMPT = f"ты помощник. Текущая дата:{string_date}"
 
 def ask_neuraldeep(api_key: str | None, messages: list[dict[str, str]], temp: float):
     # 2. Настройка запроса к NeuralDeep
@@ -94,8 +102,10 @@ if HISTORY_PATH.exists():
     except json.JSONDecodeError:
         print("история переписки повреждена или пуста")
         
-        messages = [{"role": "system", "content": "ты помощник"}]
+        messages = [{"role": "system", "content": SYSTEM_PROMPT}]
 
+else:
+    messages = [{"role": "system", "content": SYSTEM_PROMPT}]
     
 while True:
     user_prompt = input("\n--Ваш запрос---\n")
