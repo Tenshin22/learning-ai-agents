@@ -6,6 +6,7 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 from datetime import datetime
+from weather import weather
 
 # Аннотация `переменная: тип` — это подсказка для человека и редактора кода.
 # Python сам её игнорирует при запуске, но IDE сможет подсказывать методы
@@ -18,7 +19,7 @@ from datetime import datetime
 BASE_DIR: Path = Path(__file__).resolve().parent.parent
 HISTORY_PATH = BASE_DIR / "lesson-3" / "history_chat.json"
 ENV_PATH: Path = BASE_DIR / ".env"
-
+CURRENT_WEATHER: str = f"Город: Красноярск\nТемпература:, {weather["temperature_2m"]}, °C\nВлажность:, {weather["relative_humidity_2m"]}, %\nВетер:, {weather["wind_speed_10m"]}, км/ч"
 
 with open(ENV_PATH, mode="r", encoding="utf-8") as file:
     # str — обычная строка (текст)
@@ -40,7 +41,7 @@ now: datetime = datetime.now()
 
 string_date: str = str(now)
 
-SYSTEM_PROMPT = f"ты помощник. Текущая дата:{string_date}"
+SYSTEM_PROMPT = f"ты помощник. Текущая дата:{string_date}. Текущая погода:{CURRENT_WEATHER}"
 
 def ask_neuraldeep(api_key: str | None, messages: list[dict[str, str]], temp: float):
     # 2. Настройка запроса к NeuralDeep
