@@ -6,7 +6,7 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 from datetime import datetime
-from weather import weather
+from weather import get_weather
 
 # Аннотация `переменная: тип` — это подсказка для человека и редактора кода.
 # Python сам её игнорирует при запуске, но IDE сможет подсказывать методы
@@ -19,7 +19,22 @@ from weather import weather
 BASE_DIR: Path = Path(__file__).resolve().parent.parent
 HISTORY_PATH = BASE_DIR / "lesson-3" / "history_chat.json"
 ENV_PATH: Path = BASE_DIR / ".env"
-CURRENT_WEATHER: str = f"Город: Красноярск\nТемпература:, {weather["temperature_2m"]}, °C\nВлажность:, {weather["relative_humidity_2m"]}, %\nВетер:, {weather["wind_speed_10m"]}, км/ч"
+
+weather = get_weather()
+
+if weather is None:
+    CURRENT_WEATHER = (
+        "Актуальные данные о погоде в Красноярске недоступны. "
+        "Не придумывай погодные условия."
+    )
+else:
+    CURRENT_WEATHER = (
+        f"Погода в Красноярске:\n"
+        f"Температура: {weather['temperature_2m']} °C\n"
+        f"Влажность: {weather['relative_humidity_2m']} %\n"
+        f"Ветер: {weather['wind_speed_10m']} км/ч\n"
+        f"Время данных: {weather['time']}"
+    )
 
 with open(ENV_PATH, mode="r", encoding="utf-8") as file:
     # str — обычная строка (текст)
@@ -109,7 +124,13 @@ else:
     messages = [{"role": "system", "content": SYSTEM_PROMPT}]
     
 while True:
-    user_prompt = input("\n--Ваш запрос---\n")
+    try:
+        user_prompt = input("\n--Ваш запрос---\n")
+        
+    except KeyboardInterrupt:
+        print("\nВы вышли")
+        break
+    
     messages.append({"role": "user", "content": user_prompt})
     
     llm_response = ask_neuraldeep(api_key, messages, temp)
