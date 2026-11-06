@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 from datetime import datetime
 from weather import get_weather
+from netcheck import ensure_api
 
 # Аннотация `переменная: тип` — это подсказка для человека и редактора кода.
 # Python сам её игнорирует при запуске, но IDE сможет подсказывать методы
@@ -122,7 +123,15 @@ if HISTORY_PATH.exists():
 
 else:
     messages = [{"role": "system", "content": SYSTEM_PROMPT}]
-    
+
+messages.insert(1, SYSTEM_PROMPT)
+
+# Проверяем доступ к API до старта чата: если сеть или VPN мешают,
+# модуль netcheck объяснит причину и предложит исправление
+if not ensure_api():
+    print("Без доступа к API чат не сможет работать. Выходим.")
+    exit()
+
 while True:
     try:
         user_prompt = input("\n--Ваш запрос---\n")
@@ -131,17 +140,21 @@ while True:
         print("\nВы вышли")
         break
     
-    messages.append({"role": "user", "content": user_prompt})
+    messages.append({"role": "user", "content": user_prompt + CURRENT_WEATHER})
     
-    llm_response = ask_neuraldeep(api_key, messages, temp)
-    print(llm_response)
+    try:
+        llm_response = ask_neuraldeep(api_key, messages, temp)
+        print(llm_response)
+        
+        messages.append({"role": "assistant", "content": llm_response})
+        
+        with open(HISTORY_PATH, mode="w", encoding="utf-8") as f:
+            json.dump(messages, f, ensure_ascii=False, indent=2)
     
-    messages.append({"role": "assistant", "content": llm_response})
-    
-    with open(HISTORY_PATH, mode="w", encoding="utf-8") as f:
-        json.dump(messages, f, ensure_ascii=False, indent=2)
-    
-    user_answer = input("Если хотите выйти напишите Выход\nЕсли нет Enter\nВвод: ").lower()
-    
+    except KeyboardInterrupt:
+        print("\n\nНе делай мне больно ПОЖАЛУЙСТА. Не нажимай Ctrl + C")
+        
+    user_answer = input("\nЕсли хотите выйти напишите Выход\nЕсли нет Enter\nВвод: ").lower()
+        
     if user_answer == "выход":
         break

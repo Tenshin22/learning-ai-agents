@@ -24,6 +24,8 @@ def get_weather():
             print("Влажность:", weather["relative_humidity_2m"], "%")
             print("Ветер:", weather["wind_speed_10m"], "км/ч")
             print("Время данных:", weather["time"])
+        
+        return weather
 
         
     except urllib.error.HTTPError as error:
